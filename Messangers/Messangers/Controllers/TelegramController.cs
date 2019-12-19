@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Messangers.Controllers
@@ -32,9 +30,9 @@ namespace Messangers.Controllers
 			}
 		}
 
-		[HttpPost]
-		[Route("getchats")]
-		public List<long> GetChats([FromBody]int botId) {
+		[HttpGet]
+		[Route("getchats/{botId}")]
+		public List<long> GetChats(int botId) {
 			List<long> chats = _storage.GetChats(botId);
 			return chats;
 		}
