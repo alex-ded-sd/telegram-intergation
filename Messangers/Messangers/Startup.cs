@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Messangers
 {
+	using Controllers;
+
 	public class Startup
 	{
 		public Startup(IConfiguration configuration) {
@@ -26,6 +28,9 @@ namespace Messangers
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services) {
 			services.AddControllers();
+			//TODO плохо
+			services.AddTransient<IBotStorage, TlgBotStorage>();
+			services.AddScoped<TelegramBotHandler>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
