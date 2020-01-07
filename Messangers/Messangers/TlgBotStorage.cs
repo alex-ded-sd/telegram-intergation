@@ -1,35 +1,48 @@
 ﻿namespace Messangers
 {
-	using System.Collections.Concurrent;
 	using System.Collections.Generic;
 	using System.Linq;
+	using System.Threading.Tasks;
+	using Messangers.DAL;
 	using Microsoft.EntityFrameworkCore.Internal;
+	using MongoDB.Driver;
 	using Telegram.Bot;
 	using Telegram.Bot.Args;
 
 	public class TlgBotStorage: IBotStorage
 	{
-		private static ConcurrentDictionary<long, ITelegramBotClient> _botClientRelation = new ConcurrentDictionary<long, ITelegramBotClient>();
-		private static List<ITelegramBotClient> _botStorage = new List<ITelegramBotClient>();
-		private static object _lockObject = new object();
+		private readonly IMongoCollection<(long chatId, ITelegramBotClient client)> _botClientRelation;
+
+		private readonly IMongoCollection<ITelegramBotClient> _botStorage;
+
+		private readonly DbStoreSettings _dbSettings;
+
+		public TlgBotStorage(DbStoreSettings dbSettings)
+		{
+			this._dbSettings = dbSettings;
+			MongoClient client = new MongoClient(dbSettings.ConnectionString);
+			IMongoDatabase database = client.GetDatabase(dbSettings.DataBaseName);
+			_botStorage = database.GetCollection<ITelegramBotClient>(dbSettings.TlgBotStorageCollectionName);
+			_botClientRelation = database.GetCollection<(long botId, ITelegramBotClient client)>	
+				(dbSettings.TlgBotClientRelationship);
+		}
 
 		private void StoreBot(ITelegramBotClient client) {
-			lock (_lockObject) {
-				if (!_botStorage.Any(bot => client.BotId == bot.BotId)) {
-					_botStorage.Add(client);
+			if (!_botStorage.AsQueryable().Any(bot => client.BotId == bot.BotId)) {
+					_botStorage.InsertOne(client);
 					client.OnMessage += ClientOnOnMessage;
 					client.StartReceiving();
 				}
-			}
 		}
 		
 
 		private void ClientOnOnMessage(object sender, MessageEventArgs e) {
 			ITelegramBotClient client = sender as ITelegramBotClient;
 			long chatId = e.Message.Chat.Id;
-			bool isExists = _botClientRelation.Any(item => item.Key == chatId && item.Value.BotId == client.BotId);
+			bool isExists = _botClientRelation.AsQueryable()
+				.Any(item => item.chatId == chatId && item.client.BotId == client.BotId);
 			if (!isExists) {
-				_botClientRelation.TryAdd(chatId, client);
+				_botClientRelation.InsertOne((chatId, client));
 			}
 		}
 
@@ -39,15 +52,18 @@
 			return client.BotId;
 		}
 
-		public ITelegramBotClient GetBot(long chatId) {
-			if (_botClientRelation.TryGetValue(chatId, out ITelegramBotClient botClient)) {
-				return botClient;
-			}
-			return null;
+		public async Task<ITelegramBotClient> GetBotAsync(long chatId) {
+			IAsyncCursor<(long chatId, ITelegramBotClient client)> relationshipsCursor = await _botClientRelation
+				.FindAsync(botClientRel => botClientRel.chatId == chatId);
+			(long chatId, ITelegramBotClient client) record = await relationshipsCursor.FirstOrDefaultAsync();
+			return record.client;
 		}
 
-		public List<long> GetChats(int botId) {
-			return _botClientRelation.Where(item => item.Value.BotId == botId).Select(item => item.Key).ToList();
+		public async Task<List<long>> GetChatsAsync(int botId) {
+			IAsyncCursor<(long chatId, ITelegramBotClient client)> relationshipsCursor = await _botClientRelation
+				.FindAsync(botClientRel => botClientRel.client.BotId == botId);
+			List<(long chatId, ITelegramBotClient client)> relationships = await relationshipsCursor.ToListAsync();
+			return relationships.Select(item => item.chatId).ToList();
 		}
 	}
 }

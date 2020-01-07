@@ -4,10 +4,10 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build
 WORKDIR /src
-COPY ["Messangers/Messangers.csproj", "Messangers/"]
-RUN dotnet restore "Messangers/Messangers.csproj"
+COPY ["Messangers.csproj", "./"]
+RUN dotnet restore "./Messangers.csproj"
 COPY . .
-WORKDIR "/src/Messangers"
+WORKDIR "/src/."
 RUN dotnet build "Messangers.csproj" -c Release -o /app/build
 
 FROM build AS publish

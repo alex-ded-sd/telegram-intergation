@@ -1,0 +1,25 @@
+# prettier-ignore
+version: "3"
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_DATABASE=messangers
+    volumes:
+      - ./mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    ports:
+      - 27017:27017
+  api:
+    image: api
+    container_name: api
+    ports:
+      - 5000:80
+    build:
+      context: ./messangers/messangers
+      dockerfile: Dockerfile
+    environment:
+      - DbStoreSettings__ConnectionString=mongodb://mongodb:27017
+    depends_on:
+      - mongodb

@@ -13,7 +13,7 @@
 			_tlgBotStorage = tlgBotStorage;
 		}
 		public async Task<string> TellBotAsync(SayHello sayHello) {
-			ITelegramBotClient client = _tlgBotStorage.GetBot(sayHello.ChatId);
+			ITelegramBotClient client = await _tlgBotStorage.GetBotAsync(sayHello.ChatId);
 			if (client != null) {
 				Message result = await client.SendTextMessageAsync(sayHello.ChatId, sayHello.Message);
 				return $"Message: \"{result.Text}\" was successefuly send to chat with ChatId: {result.Chat.Id}";

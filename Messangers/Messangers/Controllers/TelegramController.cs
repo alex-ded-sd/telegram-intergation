@@ -32,9 +32,15 @@ namespace Messangers.Controllers
 
 		[HttpGet]
 		[Route("getchats/{botId}")]
-		public List<long> GetChats(int botId) {
-			List<long> chats = _storage.GetChats(botId);
+		public async Task<List<long>> GetChats(int botId) {
+			List<long> chats = await _storage.GetChatsAsync(botId);
 			return chats;
+		}
+
+		[HttpGet]
+		[Route("test")]
+		public IActionResult Test() {
+			return Ok("ok result");
 		}
 
 		[HttpPost]

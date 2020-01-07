@@ -1,8 +1,10 @@
+using Messangers.DAL;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Messangers
 {
@@ -18,9 +20,12 @@ namespace Messangers
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services) {
+			services.Configure<DbStoreSettings>(Configuration.GetSection(nameof(DbStoreSettings)));
+			services.AddSingleton<DbStoreSettings>(serviceProvider => 
+				serviceProvider.GetRequiredService<IOptions<DbStoreSettings>>().Value);
 			services.AddControllers();
-			//TODO плохо
-			services.AddTransient<IBotStorage, TlgBotStorage>();
+			//TODO пїЅпїЅпїЅпїЅпїЅ
+			services.AddSingleton<IBotStorage, TlgBotStorage>();
 			services.AddScoped<TelegramBotHandler>();
 		}
 
