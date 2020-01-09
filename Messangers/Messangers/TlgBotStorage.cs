@@ -33,9 +33,10 @@
 		}
 
 		public async Task<TelegramBot> GetBotAsync(long chatId) {
-			var relationshipsCursor = await _botClientRelation.FindAsync(botClientRel => botClientRel.ChatId == chatId);
+			var filter = Builders<TelegramBotChats>.Filter.Eq("ChatId", chatId);
+			var relationshipsCursor = await _botClientRelation.FindAsync(filter);
 			TelegramBotChats record = await relationshipsCursor.FirstOrDefaultAsync();
-			return record.TelegramBot;
+			return record?.TelegramBot;
 		}
 
 		public List<TelegramBot> getBots() {
@@ -53,6 +54,11 @@
 			var relationshipsCursor = await _botClientRelation.FindAsync(chatFilter);
 			List<TelegramBotChats> relationships = await relationshipsCursor.ToListAsync();
 			return relationships.Select(item => item.ChatId).ToList();
+		}
+
+		public void StoreChat(TelegramBotChats botChat)
+		{
+			_botClientRelation.InsertOne(botChat);
 		}
 	}
 }
