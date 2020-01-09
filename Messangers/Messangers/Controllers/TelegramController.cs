@@ -11,29 +11,23 @@ namespace Messangers.Controllers
 	[ApiController]
 	public class TelegramController : ControllerBase
 	{
-		private readonly IBotStorage _storage;
 		private readonly TelegramBotHandler _handler;
 
-		public TelegramController(IBotStorage storage, TelegramBotHandler handler) {
-			_storage = storage;
+		public TelegramController(TelegramBotHandler handler) {
 			_handler = handler;
 		}
 
 		[HttpPost]
 		[Route("registerbot")]
 		public IActionResult RegisterBot([FromBody]string botToken) {
-			try {
-				int botId = _storage.StoreBot(botToken);
-				return Ok($"Bot successefuly registered. Bot id: {botId}");
-			} catch (Exception e) {
-				return NotFound("Error");
-			}
+			int botId = _handler.StoreBot(botToken);
+			return Ok($"Bot successefuly registered. Bot id: {botId}");
 		}
 
 		[HttpGet]
 		[Route("getchats/{botId}")]
 		public async Task<List<long>> GetChats(int botId) {
-			List<long> chats = await _storage.GetChatsAsync(botId);
+			List<long> chats = await _handler.GetChatsAsync(botId);
 			return chats;
 		}
 

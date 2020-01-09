@@ -4,6 +4,7 @@
 	using System.Threading.Tasks;
 	using Telegram.Bot;
 
+	//Temporarily redundant
 	public interface IBotStorage
 	{
 		int StoreBot(string botToken);

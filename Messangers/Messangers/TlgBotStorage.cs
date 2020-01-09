@@ -4,44 +4,48 @@
 	using System.Linq;
 	using System.Threading.Tasks;
 	using Messangers.DAL;
+	using Messangers.Models;
 	using Microsoft.EntityFrameworkCore.Internal;
+    using Microsoft.Extensions.Options;
+    using MongoDB.Bson;
 	using MongoDB.Driver;
 	using Telegram.Bot;
 	using Telegram.Bot.Args;
 
-	public class TlgBotStorage: IBotStorage
+	public class TlgBotStorage
 	{
 		private readonly IMongoCollection<(long chatId, ITelegramBotClient client)> _botClientRelation;
 
-		private readonly IMongoCollection<ITelegramBotClient> _botStorage;
+		private readonly IMongoCollection<TelegramBotClient> _botStorage;
 
 		private readonly DbStoreSettings _dbSettings;
 
-		public TlgBotStorage(DbStoreSettings dbSettings)
+		public TlgBotStorage(IOptions<DbStoreSettings> dbSettings)
 		{
-			this._dbSettings = dbSettings;
-			MongoClient client = new MongoClient(dbSettings.ConnectionString);
-			IMongoDatabase database = client.GetDatabase(dbSettings.DataBaseName);
-			_botStorage = database.GetCollection<ITelegramBotClient>(dbSettings.TlgBotStorageCollectionName);
-			_botClientRelation = database.GetCollection<(long botId, ITelegramBotClient client)>	
-				(dbSettings.TlgBotClientRelationship);
+			this._dbSettings = dbSettings.Value;
+			MongoClient client = new MongoClient(_dbSettings.ConnectionString);
+			IMongoDatabase database = client.GetDatabase(_dbSettings.DataBaseName);
+			_botStorage = database.GetCollection<TelegramBotClient>(_dbSettings.TlgBotStorageCollectionName);
+			_botClientRelation = database.GetCollection<(long chatId, ITelegramBotClient client)>(_dbSettings.TlgBotClientRelationship);
 		}
 
-		private void StoreBot(ITelegramBotClient client) {
-			if (!_botStorage.AsQueryable().Any(bot => client.BotId == bot.BotId)) {
-					_botStorage.InsertOne(client);
-					client.OnMessage += ClientOnOnMessage;
-					client.StartReceiving();
-				}
+		private void StoreBot(TelegramBotClient client) {
+			var filter = Builders<TelegramBotClient>.Filter.Eq("BotId", client.BotId);
+			bool isNotExist = !_botStorage.Find(filter).Any();
+			if (isNotExist) {
+				_botStorage.InsertOne(client);
+				client.OnMessage += ClientOnOnMessage;
+				client.StartReceiving();
+			}
 		}
 		
 
 		private void ClientOnOnMessage(object sender, MessageEventArgs e) {
 			ITelegramBotClient client = sender as ITelegramBotClient;
 			long chatId = e.Message.Chat.Id;
-			bool isExists = _botClientRelation.AsQueryable()
-				.Any(item => item.chatId == chatId && item.client.BotId == client.BotId);
-			if (!isExists) {
+			var chatFilter = Builders<(long chatId, ITelegramBotClient client)>.Filter.Eq("chatId", chatId);
+			bool isNotExist = !_botClientRelation.Find(chatFilter).Any();
+			if (isNotExist) {
 				_botClientRelation.InsertOne((chatId, client));
 			}
 		}
@@ -60,8 +64,8 @@
 		}
 
 		public async Task<List<long>> GetChatsAsync(int botId) {
-			IAsyncCursor<(long chatId, ITelegramBotClient client)> relationshipsCursor = await _botClientRelation
-				.FindAsync(botClientRel => botClientRel.client.BotId == botId);
+			var chatFilter = Builders<(long chatId, ITelegramBotClient client)>.Filter.Eq("client.chatId", botId);
+			var relationshipsCursor = await _botClientRelation.FindAsync(chatFilter);
 			List<(long chatId, ITelegramBotClient client)> relationships = await relationshipsCursor.ToListAsync();
 			return relationships.Select(item => item.chatId).ToList();
 		}
