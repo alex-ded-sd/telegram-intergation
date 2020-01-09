@@ -41,7 +41,7 @@ namespace Messangers.Controllers
 		[Route("sayhellofrom")]
 		public async Task<IActionResult> SayHelloFromAsync([FromBody]SayHello sayHello) {
 			string result = await _handler.TellBotAsync(sayHello);
-			return Ok(new {message = result});
+			return Ok(new { message = result });
 		}
 	}
 }
