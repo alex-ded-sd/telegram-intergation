@@ -19,9 +19,9 @@ namespace Messangers.Controllers
 
 		[HttpPost]
 		[Route("registerbot")]
-		public IActionResult RegisterBot([FromBody]string botToken) {
-			int botId = _handler.StoreBot(botToken);
-			return Ok($"Bot successefuly registered. Bot id: {botId}");
+		public async Task<IActionResult> RegisterBot([FromBody]string botToken) {
+			await _handler.StoreBotAsync(botToken);
+			return Ok($"Bot successefuly registered. Bot token: {botToken}");
 		}
 
 		[HttpGet]

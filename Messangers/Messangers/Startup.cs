@@ -13,6 +13,13 @@ namespace Messangers
 {
 	public class Startup
 	{
+		private TelegramBotHandler InitilazeTelegramBotHandler() {
+			var storage = Configuration.Get<TlgBotStorage>();
+			TelegramBotHandler telegramHandler = new TelegramBotHandler(storage);
+			telegramHandler.initBots();
+			return telegramHandler;
+		}
+
 		public Startup(IConfiguration configuration) {
 			Configuration = configuration;
 		}
@@ -27,9 +34,10 @@ namespace Messangers
 				cm.MapProperty(tlg => tlg.BotId);
 			});
 			services.Configure<DbStoreSettings>(Configuration.GetSection(nameof(DbStoreSettings)));
-			services.AddControllers();
 			services.AddSingleton<TlgBotStorage>();
-			services.AddScoped<TelegramBotHandler>();
+			TelegramBotHandler telegramHandler = InitilazeTelegramBotHandler();
+			services.AddSingleton<TelegramBotHandler>(telegramHandler);
+			services.AddControllers();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
