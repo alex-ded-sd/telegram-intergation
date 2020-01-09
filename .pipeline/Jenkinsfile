@@ -25,7 +25,7 @@ pipelineWrap(config) {
   dotnetBuild(isStage: true)
   dockerBuild(
     isStage: true,
-    file: 'Messangers/Messangers/Dockerfile',
+    file: 'Messengers/Messengers/Dockerfile',
     push: isMaster(),
     tags: isMaster() ? ['latest'] : [])
 }
