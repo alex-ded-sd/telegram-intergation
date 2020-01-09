@@ -13,13 +13,6 @@ namespace Messangers
 {
 	public class Startup
 	{
-		private TelegramBotHandler InitilazeTelegramBotHandler() {
-			var storage = Configuration.Get<TlgBotStorage>();
-			TelegramBotHandler telegramHandler = new TelegramBotHandler(storage);
-			telegramHandler.initBots();
-			return telegramHandler;
-		}
-
 		public Startup(IConfiguration configuration) {
 			Configuration = configuration;
 		}
@@ -34,9 +27,8 @@ namespace Messangers
 				cm.MapProperty(tlg => tlg.BotId);
 			});
 			services.Configure<DbStoreSettings>(Configuration.GetSection(nameof(DbStoreSettings)));
-			services.AddSingleton<TlgBotStorage>();
-			TelegramBotHandler telegramHandler = InitilazeTelegramBotHandler();
-			services.AddSingleton<TelegramBotHandler>(telegramHandler);
+			services.AddScoped<TlgBotStorage>();
+			services.AddScoped<TelegramBotHandler>();
 			services.AddControllers();
 		}
 

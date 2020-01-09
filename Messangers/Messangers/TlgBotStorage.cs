@@ -39,6 +39,10 @@
 			return record.client;
 		}
 
+		public List<TelegramBot> getBots() {
+			return _botStorage.Find<TelegramBot>(bot => true).ToList();
+		}
+
 		public async Task<TelegramBot> GetBotAsync(string botToken) {
 			var filter = Builders<TelegramBot>.Filter.Eq("BotToken", botToken);
 			var cursor = await _botStorage.FindAsync(filter);
