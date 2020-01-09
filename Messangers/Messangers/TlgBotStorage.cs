@@ -6,7 +6,6 @@
 	using System.Threading.Tasks;
 	using Messangers.DAL;
 	using Messangers.Models;
-	using Microsoft.EntityFrameworkCore.Internal;
 	using Microsoft.Extensions.Options;
 	using MongoDB.Bson;
 	using MongoDB.Driver;
@@ -15,7 +14,7 @@
 
 	public class TlgBotStorage
 	{
-		private readonly IMongoCollection<(long chatId, ITelegramBotClient client)> _botClientRelation;
+		private readonly IMongoCollection<TelegramBotChats> _botClientRelation;
 
 		private readonly IMongoCollection<TelegramBot> _botStorage;
 
@@ -26,17 +25,17 @@
 			MongoClient client = new MongoClient(_dbSettings.ConnectionString);
 			IMongoDatabase database = client.GetDatabase(_dbSettings.DataBaseName);
 			_botStorage = database.GetCollection<TelegramBot>(_dbSettings.TlgBotsCollectionName);
-			_botClientRelation = database.GetCollection<(long chatId, ITelegramBotClient client)>(_dbSettings.TlgBotClientRelationship);
+			_botClientRelation = database.GetCollection<TelegramBotChats>(_dbSettings.TlgBotChats);
 		}
 
 		public void StoreBot(TelegramBot telegramBot) {
 			_botStorage.InsertOne(telegramBot);
 		}
 
-		public async Task<ITelegramBotClient> GetBotAsync(long chatId) {
-			var relationshipsCursor = await _botClientRelation.FindAsync(botClientRel => botClientRel.chatId == chatId);
-			(long chatId, ITelegramBotClient client) record = await relationshipsCursor.FirstOrDefaultAsync();
-			return record.client;
+		public async Task<TelegramBot> GetBotAsync(long chatId) {
+			var relationshipsCursor = await _botClientRelation.FindAsync(botClientRel => botClientRel.ChatId == chatId);
+			TelegramBotChats record = await relationshipsCursor.FirstOrDefaultAsync();
+			return record.TelegramBot;
 		}
 
 		public List<TelegramBot> getBots() {
@@ -50,10 +49,10 @@
 		}
 
 		public async Task<List<long>> GetChatsAsync(int botId) {
-			var chatFilter = Builders<(long chatId, ITelegramBotClient client)>.Filter.Eq("client.chatId", botId);
+			var chatFilter = Builders<TelegramBotChats>.Filter.Eq("ChatId", botId);
 			var relationshipsCursor = await _botClientRelation.FindAsync(chatFilter);
-			List<(long chatId, ITelegramBotClient client)> relationships = await relationshipsCursor.ToListAsync();
-			return relationships.Select(item => item.chatId).ToList();
+			List<TelegramBotChats> relationships = await relationshipsCursor.ToListAsync();
+			return relationships.Select(item => item.ChatId).ToList();
 		}
 	}
 }

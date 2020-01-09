@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
 	using Models;
+	using MongoDB.Driver;
 	using Telegram.Bot;
 	using Telegram.Bot.Args;
 	using Telegram.Bot.Types;
@@ -15,13 +16,16 @@
 		private static List<ITelegramBotClient> _botInstances = new List<ITelegramBotClient>();
 		private static bool _initState;
 		
-		public TelegramBotHandler(TlgBotStorage tlgBotStorage) {
+		public TelegramBotHandler(TlgBotStorage tlgBotStorage)
+		{
 			_tlgBotStorage = tlgBotStorage;
 			initBots();
 		}
 
-		private void initBots() {
-			if (_initState) {
+		private void initBots()
+		{
+			if (_initState)
+			{
 				return;
 			}
 			List<TelegramBot> telegramBots = _tlgBotStorage.getBots();
@@ -34,16 +38,30 @@
 			_initState = true;
 		}
 
-		private void ClientOnMessage(object sender, MessageEventArgs e) {
-			var x = 10;
-			//ITelegramBotClient client = sender as ITelegramBotClient;
-			//long chatId = e.Message.Chat.Id;
-			//var chatFilter = Builders<(long chatId, ITelegramBotClient client)>.Filter.Eq("chatId", chatId);
-			//bool isNotExist = !_botClientRelation.Find(chatFilter).Any();
-			//if (isNotExist) {
-			//	_botClientRelation.InsertOne((chatId, client));
-			//}
+		private void ClientOnMessage(object sender, MessageEventArgs e)
+		{
+			ITelegramBotClient client = sender as ITelegramBotClient;
+			long chatId = e.Message.Chat.Id;
+			var botTokenFilter = Builders<TelegramBot>.Filter.Eq("BotId", client.BotId);
+			var botToken = _telegramBotCollection.Find(botTokenFilter).FirstOrDefault();
+
+			var chatFilter = Builders<TelegramBotChats>.Filter.Eq("ChatId", chatId);
+			bool isNotExist = !_botClientRelation.Find(chatFilter).Any();
+			if (isNotExist)
+			{
+				var telegramBotChat = new TelegramBotChats
+				{
+					ChatId = chatId,
+					TelegramBot = new TelegramBot
+					{
+						BotId = client.BotId,
+						BotToken = botToken.BotToken
+					}
+				};
+				_botClientRelation.InsertOne(telegramBotChat);
+			}
 		}
+
 
 		public async Task<string> TellBotAsync(SayHello sayHello) {
 			ITelegramBotClient client = await _tlgBotStorage.GetBotAsync(sayHello.ChatId);
@@ -54,7 +72,6 @@
 			return "Error";
 		}
 
-		
 
 		public async Task StoreBotAsync(string botToken) {
 			TelegramBot telegramBot = await _tlgBotStorage.GetBotAsync(botToken);
@@ -68,7 +85,8 @@
 			}
 		}
 
-		public Task<List<long>> GetChatsAsync(int botId) {
+		public Task<List<long>> GetChatsAsync(int botId)
+		{
 			return _tlgBotStorage.GetChatsAsync(botId);
 		}
 	}
