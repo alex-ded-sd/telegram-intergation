@@ -2,5 +2,5 @@ stages:
   - deploy
 
 job 1:
-  stage: build
+  stage: deploy
   script: docker-compose up
