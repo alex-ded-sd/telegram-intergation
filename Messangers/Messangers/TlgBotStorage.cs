@@ -32,28 +32,34 @@
 			_botStorage.InsertOne(telegramBot);
 		}
 
-		public async Task<TelegramBot> GetBotAsync(long chatId) {
+		public TelegramBot GetBot(long chatId) {
 			var filter = Builders<TelegramBotChats>.Filter.Eq("ChatId", chatId);
-			var relationshipsCursor = await _botClientRelation.FindAsync(filter);
-			TelegramBotChats record = await relationshipsCursor.FirstOrDefaultAsync();
-			return record?.TelegramBot;
+			TelegramBotChats chat = _botClientRelation.Find(filter).FirstOrDefault();
+			return chat?.TelegramBot;
 		}
 
-		public List<TelegramBot> getBots() {
+		public List<TelegramBot> GetBots() {
 			return _botStorage.Find<TelegramBot>(bot => true).ToList();
 		}
 
-		public async Task<TelegramBot> GetBotAsync(string botToken) {
+		public TelegramBot GetBot(string botToken) {
 			var filter = Builders<TelegramBot>.Filter.Eq("BotToken", botToken);
-			var cursor = await _botStorage.FindAsync(filter);
-			return await cursor.FirstOrDefaultAsync();
+			return _botStorage.Find(filter).FirstOrDefault();
 		}
 
-		public async Task<List<long>> GetChatsAsync(int botId) {
-			var chatFilter = Builders<TelegramBotChats>.Filter.Eq("ChatId", botId);
-			var relationshipsCursor = await _botClientRelation.FindAsync(chatFilter);
-			List<TelegramBotChats> relationships = await relationshipsCursor.ToListAsync();
-			return relationships.Select(item => item.ChatId).ToList();
+		public TelegramBot GetBot(int botId) {
+			var filter = Builders<TelegramBot>.Filter.Eq("BotId", botId);
+			return _botStorage.Find(filter).FirstOrDefault();
+		}
+
+		public List<long> GetChats(int botId) {
+			var chatFilter = Builders<TelegramBotChats>.Filter.Eq("TelegramBot.ChatId", botId);
+			List<TelegramBotChats> chats = _botClientRelation.Find(item => item.TelegramBot.BotId == botId).ToList();
+			return chats.Select(item => item.ChatId).ToList();
+		}
+
+		public TelegramBotChats GetChat(long chatId) {
+			return _botClientRelation.Find(item => item.ChatId == chatId).FirstOrDefault();
 		}
 
 		public void StoreChat(TelegramBotChats botChat)

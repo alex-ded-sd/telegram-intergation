@@ -19,15 +19,15 @@ namespace Messangers.Controllers
 
 		[HttpPost]
 		[Route("registerbot")]
-		public async Task<IActionResult> RegisterBot([FromBody]string botToken) {
-			await _handler.StoreBotAsync(botToken);
+		public IActionResult RegisterBot([FromBody]string botToken) {
+			_handler.StoreBot(botToken);
 			return Ok($"Bot successefuly registered. Bot token: {botToken}");
 		}
 
 		[HttpGet]
 		[Route("getchats/{botId}")]
-		public async Task<List<long>> GetChats(int botId) {
-			List<long> chats = await _handler.GetChatsAsync(botId);
+		public List<long> GetChats(int botId) {
+			List<long> chats = _handler.GetChats(botId);
 			return chats;
 		}
 
