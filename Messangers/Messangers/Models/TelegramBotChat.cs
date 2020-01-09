@@ -2,16 +2,11 @@
 using MongoDB.Bson.Serialization.Attributes;
 namespace Messangers.Models
 {
-	public class TelegramBotChats
+	public class TelegramBotChat
 	{
 	
-		public ObjectId Id
-		{
-		    get; set;
-		}
+		public ObjectId Id { get; set; }
 		public long ChatId { get; set; }
-		
-		[BsonElement]
-		public TelegramBot TelegramBot { get; set; }
+		public int BotId { get; set; }
 	}
 }

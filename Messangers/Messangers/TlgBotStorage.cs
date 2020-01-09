@@ -14,7 +14,7 @@
 
 	public class TlgBotStorage
 	{
-		private readonly IMongoCollection<TelegramBotChats> _botClientRelation;
+		private readonly IMongoCollection<TelegramBotChat> _chatStorage;
 
 		private readonly IMongoCollection<TelegramBot> _botStorage;
 
@@ -25,7 +25,7 @@
 			MongoClient client = new MongoClient(_dbSettings.ConnectionString);
 			IMongoDatabase database = client.GetDatabase(_dbSettings.DataBaseName);
 			_botStorage = database.GetCollection<TelegramBot>(_dbSettings.TlgBotsCollectionName);
-			_botClientRelation = database.GetCollection<TelegramBotChats>(_dbSettings.TlgBotChats);
+			_chatStorage = database.GetCollection<TelegramBotChat>(_dbSettings.TlgBotChats);
 		}
 
 		public void StoreBot(TelegramBot telegramBot) {
@@ -33,9 +33,9 @@
 		}
 
 		public TelegramBot GetBot(long chatId) {
-			var filter = Builders<TelegramBotChats>.Filter.Eq("ChatId", chatId);
-			TelegramBotChats chat = _botClientRelation.Find(filter).FirstOrDefault();
-			return chat?.TelegramBot;
+			var filter = Builders<TelegramBotChat>.Filter.Eq("ChatId", chatId);
+			TelegramBotChat chat = _chatStorage.Find(filter).FirstOrDefault();
+			return GetBot(chat.BotId);
 		}
 
 		public List<TelegramBot> GetBots() {
@@ -53,18 +53,18 @@
 		}
 
 		public List<long> GetChats(int botId) {
-			var chatFilter = Builders<TelegramBotChats>.Filter.Eq("TelegramBot.ChatId", botId);
-			List<TelegramBotChats> chats = _botClientRelation.Find(item => item.TelegramBot.BotId == botId).ToList();
+			var chatFilter = Builders<TelegramBotChat>.Filter.Eq("TelegramBot.ChatId", botId);
+			List<TelegramBotChat> chats = _chatStorage.Find(item => item.BotId == botId).ToList();
 			return chats.Select(item => item.ChatId).ToList();
 		}
 
-		public TelegramBotChats GetChat(long chatId) {
-			return _botClientRelation.Find(item => item.ChatId == chatId).FirstOrDefault();
+		public TelegramBotChat GetChat(long chatId) {
+			return _chatStorage.Find(item => item.ChatId == chatId).FirstOrDefault();
 		}
 
-		public void StoreChat(TelegramBotChats botChat)
+		public void StoreChat(TelegramBotChat botChat)
 		{
-			_botClientRelation.InsertOne(botChat);
+			_chatStorage.InsertOne(botChat);
 		}
 	}
 }

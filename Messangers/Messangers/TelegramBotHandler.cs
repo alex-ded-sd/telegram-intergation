@@ -14,15 +14,14 @@
 	{
 		private readonly TlgBotStorage _tlgBotStorage;
 		private static List<ITelegramBotClient> _botInstances = new List<ITelegramBotClient>();
-		private static bool _initState;
+		private static bool _isBotsInitialized;
 
 		public TelegramBotHandler(TlgBotStorage tlgBotStorage) {
 			_tlgBotStorage = tlgBotStorage;
-			initBots();
 		}
 
-		private void initBots() {
-			if (_initState) {
+		public void initBots() {
+			if (_isBotsInitialized) {
 				return;
 			}
 			List<TelegramBot> telegramBots = _tlgBotStorage.GetBots();
@@ -32,24 +31,20 @@
 				_botInstances.Add(client);
 				client.StartReceiving();
 			});
-			_initState = true;
+			_isBotsInitialized = true;
 		}
 
-		private void ClientOnMessage(object sender, MessageEventArgs e)
-		{
+		private void ClientOnMessage(object sender, MessageEventArgs e) {
 			ITelegramBotClient client = sender as ITelegramBotClient;
 			long chatId = e.Message.Chat.Id;
-			TelegramBotChats telegramBotChat = _tlgBotStorage.GetChat(chatId);
-			if (telegramBotChat == null)
-			{
-				TelegramBot telegramBot = _tlgBotStorage.GetBot(client.BotId);
-				telegramBotChat = new TelegramBotChats {
+			TelegramBotChat telegramBotChat = _tlgBotStorage.GetChat(chatId);
+			if (telegramBotChat == null) {
+				telegramBotChat = new TelegramBotChat {
 					ChatId = chatId,
-					TelegramBot = telegramBot
+					BotId = client.BotId
 				};
 				_tlgBotStorage.StoreChat(telegramBotChat);
 			}
-
 		}
 
 
@@ -64,11 +59,9 @@
 		}
 
 
-		public void StoreBot(string botToken)
-		{
+		public void StoreBot(string botToken) {
 			TelegramBot telegramBot = _tlgBotStorage.GetBot(botToken);
-			if (telegramBot == null)
-			{
+			if (telegramBot == null) {
 				ITelegramBotClient client = new TelegramBotClient(botToken);
 				client.OnMessage += ClientOnMessage;
 				telegramBot = new TelegramBot { BotId = client.BotId, BotToken = botToken };
@@ -78,8 +71,7 @@
 			}
 		}
 
-		public List<long> GetChats(int botId)
-		{
+		public List<long> GetChats(int botId) {
 			return _tlgBotStorage.GetChats(botId);
 		}
 	}
