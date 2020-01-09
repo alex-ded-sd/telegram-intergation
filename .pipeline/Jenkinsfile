@@ -1,0 +1,31 @@
+@Library('pipeline-library@0.0.7') _
+
+import com.bpmonline.jenkins.PipelineEnvironment
+
+def stages = ['Build', 'Docker build']
+
+Map config = readYaml(text: """
+general:
+  builds: $stages
+  projectName: 'messengers'
+  publishPipelineState: true
+  buildTool: dotnet
+kubernetes:
+  containers:
+    - containerName: docker
+      image: docker:19.03
+    - containerName: netcore
+      image: mcr.microsoft.com/dotnet/core/sdk:3.0
+  volumes:
+    - mountPath: '/var/run/docker.sock'
+      hostPath: '/var/run/docker.sock'
+""")
+
+pipelineWrap(config) {
+  dotnetBuild(isStage: true)
+  dockerBuild(
+    isStage: true,
+    file: 'Messangers/Messangers/Dockerfile',
+    push: isMaster(),
+    tags: isMaster() ? ['latest'] : [])
+}
