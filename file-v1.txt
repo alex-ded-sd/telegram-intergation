@@ -1,4 +1,6 @@
 some text 
 in file
+version 2
+version 2 After reset
 for git learning
 start
