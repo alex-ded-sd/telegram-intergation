@@ -1,4 +1,5 @@
 some text 
 in file
+version 2
 for git learning
 start
