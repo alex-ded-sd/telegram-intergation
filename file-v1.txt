@@ -4,6 +4,7 @@ version 2 origin
 version 2 After reset local
 version 3 after reset credentials
 version 4 after reset credentials
+version 5 after reset credentials
 for git learning
 start
 
