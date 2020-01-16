@@ -2,7 +2,9 @@ some text
 in file
 version 2 origin
 version 2 After reset local
+version 3 after reset credentials
 for git learning
 start
 
+for stash
 for stash: origin
