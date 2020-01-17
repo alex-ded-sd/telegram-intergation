@@ -1,16 +1,11 @@
-﻿namespace Messangers
+﻿namespace Messengers
 {
-	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Threading.Tasks;
-	using Messangers.DAL;
-	using Messangers.Models;
+	using DAL;
 	using Microsoft.Extensions.Options;
-	using MongoDB.Bson;
+	using Models;
 	using MongoDB.Driver;
-	using Telegram.Bot;
-	using Telegram.Bot.Args;
 
 	public class TlgBotStorage
 	{

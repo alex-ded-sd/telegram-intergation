@@ -1,4 +1,4 @@
-﻿namespace Messangers.Models
+﻿namespace Messengers.Models
 {
 	public class SayHello
 	{

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MongoDB.Bson;
-
-namespace Messangers.Models
+﻿namespace Messengers.Models
 {
+	using MongoDB.Bson;
+
 	public class TelegramBot
 	{
 		public ObjectId Id {

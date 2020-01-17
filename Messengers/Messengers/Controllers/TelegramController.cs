@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-
-namespace Messangers.Controllers
+﻿namespace Messengers.Controllers
 {
+	using System.Collections.Generic;
+	using System.Threading.Tasks;
+	using Messengers;
+	using Microsoft.AspNetCore.Mvc;
+	using Microsoft.AspNetCore.SignalR;
 	using Models;
 
 	[Route("api/telegram/")]

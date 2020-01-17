@@ -1,11 +1,11 @@
-using System;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-namespace Messangers
+namespace Messengers
 {
+	using System;
+	using Microsoft.AspNetCore.Hosting;
+	using Microsoft.Extensions.DependencyInjection;
+	using Microsoft.Extensions.Hosting;
+	using Microsoft.Extensions.Logging;
+
 	public class Program
 	{
 		public static void Main(string[] args) {
@@ -15,7 +15,7 @@ namespace Messangers
 			var services = serviceScope.ServiceProvider;
 			try {
 				var telegramBotHandler = services.GetRequiredService<TelegramBotHandler>();
-				telegramBotHandler.initBots();
+				telegramBotHandler.InitBots();
 			} catch (Exception ex) {
 				var logger = services.GetRequiredService<ILogger<Program>>();
 				logger.LogError(ex, "An error occurred.");

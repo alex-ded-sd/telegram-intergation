@@ -1,16 +1,14 @@
-using Messangers.DAL;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
-using Telegram.Bot;
-
-namespace Messangers
+namespace Messengers
 {
+	using DAL;
+	using Microsoft.AspNetCore.Builder;
+	using Microsoft.AspNetCore.Hosting;
+	using Microsoft.Extensions.Configuration;
+	using Microsoft.Extensions.DependencyInjection;
+	using Microsoft.Extensions.Hosting;
+	using MongoDB.Bson.Serialization;
+	using Telegram.Bot;
+
 	public class Startup
 	{
 		public Startup(IConfiguration configuration) {
@@ -23,12 +21,18 @@ namespace Messangers
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services) {
-			BsonClassMap.RegisterClassMap<TelegramBotClient>(cm => {
-				cm.MapProperty(tlg => tlg.BotId);
-			});
 			services.Configure<DbStoreSettings>(Configuration.GetSection(nameof(DbStoreSettings)));
 			services.AddScoped<TlgBotStorage>();
 			services.AddScoped<TelegramBotHandler>();
+			services.AddCors(options =>
+			{
+				options.AddPolicy("CorsPolicy", builder => builder
+					.WithOrigins("http://localhost:4200")
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.AllowCredentials());
+			});
+			services.AddSignalR();
 			services.AddControllers();
 		}
 
@@ -42,9 +46,11 @@ namespace Messangers
 
 			app.UseRouting();
 
-			app.UseAuthorization();
+			app.UseCors("CorsPolicy");
+
 
 			app.UseEndpoints(endpoints => {
+				endpoints.MapHub<ChatHub>("/chathub");
 				endpoints.MapControllers();
 			});
 		}

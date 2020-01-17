@@ -1,11 +1,10 @@
-﻿namespace Messangers
+﻿namespace Messengers
 {
-	using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Threading.Tasks;
+	using Microsoft.AspNetCore.SignalR;
 	using Models;
-	using MongoDB.Driver;
 	using Telegram.Bot;
 	using Telegram.Bot.Args;
 	using Telegram.Bot.Types;
@@ -13,14 +12,16 @@
 	public class TelegramBotHandler
 	{
 		private readonly TlgBotStorage _tlgBotStorage;
-		private static List<ITelegramBotClient> _botInstances = new List<ITelegramBotClient>();
+		private readonly IHubContext<ChatHub, ITypedHubClient> _hubContext;
+		private static readonly List<ITelegramBotClient> _botInstances = new List<ITelegramBotClient>();
 		private static bool _isBotsInitialized;
 
-		public TelegramBotHandler(TlgBotStorage tlgBotStorage) {
+		public TelegramBotHandler(TlgBotStorage tlgBotStorage, IHubContext<ChatHub, ITypedHubClient> hubContext) {
 			_tlgBotStorage = tlgBotStorage;
+			_hubContext = hubContext;
 		}
 
-		public void initBots() {
+		public void InitBots() {
 			if (_isBotsInitialized) {
 				return;
 			}
@@ -45,6 +46,11 @@
 				};
 				_tlgBotStorage.StoreChat(telegramBotChat);
 			}
+			_hubContext.Clients.All.BroadcastMessage(new ContactMessage {
+				ChatId = chatId,
+				Message = e.Message.Text,
+				UserName = e.Message.From.Username
+			});
 		}
 
 

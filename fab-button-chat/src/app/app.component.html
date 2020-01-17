@@ -1,0 +1,11 @@
+<div class="fab-container">
+	<button
+		*ngIf="isButtonActive"
+		mat-fab
+		class="fab-toggler"
+		(click)="onToggleFab()"
+		[@EnterLeave]="'flyIn'"
+	>
+		<i class="material-icons">add</i>
+	</button>
+</div>

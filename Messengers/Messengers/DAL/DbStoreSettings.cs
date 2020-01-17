@@ -1,4 +1,4 @@
-namespace Messangers.DAL
+namespace Messengers.DAL
 {
 	public class DbStoreSettings
 	{
